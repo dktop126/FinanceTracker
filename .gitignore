@@ -1,0 +1,29 @@
+﻿# --- Библиотеки и зависимости ---
+node_modules/
+bin/
+obj/
+
+# --- Настройки IDE (Rider, VS Code) ---
+.idea/
+.vscode/
+*.user
+*.userosscache
+*.sln.dotSettings.user
+
+# --- Результаты сборки (Build) ---
+dist/
+build/
+out/
+publish/
+
+# --- Логи и временные файлы ---
+*.log
+.eslintcache
+.stylelintcache
+.DS_Store
+Thumbs.db
+
+# --- Секретные данные ---
+.env
+.env.local
+appsettings.Development.json

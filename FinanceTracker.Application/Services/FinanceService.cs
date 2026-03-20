@@ -124,6 +124,7 @@ public class FinanceService : IFinanceService
 
     public Task<decimal> GetAccountBalanceAsync(Guid accountId)
     {
-        throw new NotImplementedException();
+        //todo тело метода
+        return null;
     }
 }

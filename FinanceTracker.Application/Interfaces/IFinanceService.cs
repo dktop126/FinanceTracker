@@ -14,6 +14,7 @@ public interface IFinanceService
     Task<decimal> GetAccountBalanceAsync (Guid accountId);
     Task<IEnumerable<Category>> GetAllCategoriesAsync ();
     Task DeleteCategoryAsync (Guid categoryId);
+    Task DeleteTransactionAsync (Guid transactionId);
     
     
     

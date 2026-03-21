@@ -11,8 +11,8 @@ public class Transaction : BaseEntity
     public Currency Currency { get; set; }
     
     public Guid CategoryId { get; set; }
-    public Category Category { get; set; } = null!;
+    public Category? Category { get; set; }
     
     public Guid AccountId { get; set; }
-    public Account Account { get; set; } = null!;
+    public Account? Account { get; set; }
 }

@@ -4,8 +4,8 @@ namespace FinanceTracker.Application.DTOs;
 
 public class AccountDto
 {
-    public Guid AccountId { get; set; }
-    public string? AccountName { get; set; }
+    public Guid Id { get; set; }
+    public string? Name { get; set; }
     public decimal Balance { get; set; }
     public Currency Currency { get; set; }
 }

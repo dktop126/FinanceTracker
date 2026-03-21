@@ -26,7 +26,10 @@ public class TransactionRepository : ITransactionRepository
             .Include(t => t.Category)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
-    public async Task<IEnumerable<Transaction>> GetAllAsync() => await _dbContext.Transactions.ToListAsync();
+    public async Task<IEnumerable<Transaction>> GetAllAsync() => await _dbContext.Transactions
+        .Include(t => t.Category)
+        .Include(t => t.Account)
+        .ToListAsync();
     
     public async Task UpdateAsync(Transaction transaction) 
     { _dbContext.Transactions.Update(transaction); await _dbContext.SaveChangesAsync(); }

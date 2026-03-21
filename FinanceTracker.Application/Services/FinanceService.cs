@@ -30,7 +30,9 @@ public class FinanceService : IFinanceService
             Description = dto.Description,
             AccountId = dto.AccountId,
             CategoryId = dto.CategoryId,
-            Type = (TransactionType)dto.TransactionType
+            Type = (TransactionType)dto.TransactionType,
+            Account = account,
+            Category = await _categoryRepository.GetByIdAsync(dto.CategoryId)
         };
         
         if (transaction.Type == TransactionType.Income)
@@ -49,7 +51,8 @@ public class FinanceService : IFinanceService
         var category = new Category
         {
             Name = dto.Name,
-            Icon = dto.Icon
+            Icon = dto.Icon,
+            Type = dto.Type
         };
         await _categoryRepository.AddAsync(category);
         
@@ -73,17 +76,36 @@ public class FinanceService : IFinanceService
     public async Task<IEnumerable<TransactionDto>> GetAllTransactionsAsync()
     {
         var transactions = await _transactionRepository.GetAllAsync();
-        return transactions.Select(x => new TransactionDto
+        var transactionDtos = transactions.Select(x => new TransactionDto
         {
-            Account = x.Account,
+            AccountId = x.AccountId,
+            AccountName = x.Account?.Name,
             Amount = x.Amount,
-            Category = x.Category,
+            CategoryId = x.CategoryId,
+            CategoryName = x.Category?.Name,
             Currency = x.Currency,
-            Date = x.CreatedOn.ToLongDateString(),
+            Date = x.CreatedOn,
             TransactionId = x.Id,
             TransactionType = x.Type
-        });
+        }).OrderByDescending(x => x.Date);
+        return transactionDtos;
     }
+
+    public async Task DeleteTransactionAsync(Guid transactionId)
+    {
+        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
+        if (transaction == null) throw new KeyNotFoundException("Transaction not found");
+        var account = await _accountRepository.GetByIdAsync(transaction.AccountId);
+        if (account == null) throw new KeyNotFoundException("Account not found");
+        if (transaction.Type == TransactionType.Income)
+            account.Balance -= transaction.Amount;
+        else if (transaction.Type == TransactionType.Expense)
+            account.Balance += transaction.Amount;
+        
+        await _accountRepository.UpdateAsync(account);
+        await _transactionRepository.DeleteAsync(transactionId);
+    }
+    
     public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
     {
         return await _categoryRepository.GetAllAsync();
@@ -102,8 +124,8 @@ public class FinanceService : IFinanceService
         if (account == null) throw new KeyNotFoundException("Account not found");
         return new AccountDto
         {
-            AccountId = account.Id,
-            AccountName = account.Name,
+            Id = account.Id,
+            Name = account.Name,
             Balance = account.Balance,
             Currency = account.Currency
         };
@@ -114,8 +136,8 @@ public class FinanceService : IFinanceService
         var accounts = await _accountRepository.GetAllAsync();
         return accounts.Select(x => new AccountDto
             {
-                AccountId = x.Id,
-                AccountName = x.Name,
+                Id = x.Id,
+                Name = x.Name,
                 Balance = x.Balance,
                 Currency = x.Currency
             }

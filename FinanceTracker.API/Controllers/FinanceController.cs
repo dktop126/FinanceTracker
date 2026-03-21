@@ -28,6 +28,13 @@ public class FinanceController : ControllerBase
         return Ok(transactions);
     }
 
+    [HttpDelete("transactions/{id}")]
+    public async Task<IActionResult> DeleteTransactionAsync(Guid id)
+    {
+        await _financeService.DeleteTransactionAsync(id);
+        return NoContent();
+    }
+
     [HttpPost("categories")]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto dto)
     {

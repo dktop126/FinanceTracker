@@ -33,7 +33,14 @@ namespace FinanceTracker.Infrastructure.Migrations
                     b.Property<int>("Currency")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -50,9 +57,15 @@ namespace FinanceTracker.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Icon")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -88,9 +101,15 @@ namespace FinanceTracker.Infrastructure.Migrations
                     b.Property<int>("Currency")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("DeletedOn")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");

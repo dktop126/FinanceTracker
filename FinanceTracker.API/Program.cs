@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite("Data Source=finance.db"));
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTransactionValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountValidator>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();

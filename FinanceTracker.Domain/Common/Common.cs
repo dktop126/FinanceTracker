@@ -17,4 +17,14 @@ public abstract class BaseEntity
     /// Используется для сортировки и истории операций.
     /// </summary>
     public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>
+    /// Флаг "мягкого удаления", если true, то сущность считается удаленной и не используется в программе.
+    /// </summary>
+    public bool IsDeleted { get; set; }
+    
+    /// <summary>
+    /// Дата и время удаления сущности.
+    /// </summary>
+    public DateTime? DeletedOn { get; set; }
 }

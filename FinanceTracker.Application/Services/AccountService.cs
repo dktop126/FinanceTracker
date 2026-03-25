@@ -2,20 +2,27 @@
 using FinanceTracker.Application.Interfaces;
 using FinanceTracker.Domain.Entities;
 using FinanceTracker.Domain.Interfaces;
+using FluentValidation;
 
 namespace FinanceTracker.Application.Services;
 
 public class AccountService : IAccountService
 {
     private readonly IAccountRepository _accountRepository;
+    private readonly IValidator<CreateAccountDto> _validator;
 
-    public AccountService(IAccountRepository accountRepository)
+    public AccountService(IAccountRepository accountRepository, IValidator<CreateAccountDto> validator)
     {
         _accountRepository = accountRepository;
+        _validator = validator;
     }
-        
-        public async Task<Guid> CreateAccountAsync(CreateAccountDto dto)
+
+    public async Task<Guid> CreateAccountAsync(CreateAccountDto dto)
     {
+        var validationResult = await _validator.ValidateAsync(dto);
+        if (!validationResult.IsValid)
+            throw new ValidationException(validationResult.Errors.First().ErrorMessage);
+
         var account = new Account
         {
             Name = dto.Name,
@@ -59,5 +66,4 @@ public class AccountService : IAccountService
         if (account == null) throw new KeyNotFoundException("Account not found");
         return account.Balance;
     }
-
 }

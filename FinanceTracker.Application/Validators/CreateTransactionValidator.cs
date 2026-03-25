@@ -1,5 +1,4 @@
-﻿using System.Data;
-using FinanceTracker.Application.DTOs;
+﻿using FinanceTracker.Application.DTOs;
 using FluentValidation;
 
 namespace FinanceTracker.Application.Validators;

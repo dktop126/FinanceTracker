@@ -29,6 +29,13 @@ public interface ICategoryRepository
     Task<IEnumerable<Category>> GetAllAsync();
 
     /// <summary>
+    /// Обновляет категорию.
+    /// </summary>
+    /// <param name="category"></param>
+    /// <returns></returns>
+    Task UpdateAsync(Category category);
+
+    /// <summary>
     /// Удаляет категорию из базы данных по её уникальному идентификатору.
     /// </summary>
     /// <param name="id">Уникальный идентификатор категории (Guid).</param>

@@ -15,8 +15,11 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Transaction>().HasQueryFilter(x => !x.IsDeleted);
+        modelBuilder.Entity<Category>().HasQueryFilter(x => !x.IsDeleted);
+        modelBuilder.Entity<Account>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Transaction>().Property(t => t.Amount).HasPrecision(18, 2);
         modelBuilder.Entity<Account>().Property(t => t.Balance).HasPrecision(18, 2);
+        base.OnModelCreating(modelBuilder);
     }
 }

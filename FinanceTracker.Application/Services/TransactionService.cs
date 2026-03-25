@@ -83,8 +83,11 @@ public class TransactionService : ITransactionService
             account.Balance -= transaction.Amount;
         else if (transaction.Type == TransactionType.Expense)
             account.Balance += transaction.Amount;
-
+        
+        transaction.IsDeleted = true;
+        transaction.DeletedOn = DateTime.UtcNow;
+        
         await _accountRepository.UpdateAsync(account);
-        await _transactionRepository.DeleteAsync(transactionId);
+        await _transactionRepository.UpdateAsync(transaction);
     }
 }

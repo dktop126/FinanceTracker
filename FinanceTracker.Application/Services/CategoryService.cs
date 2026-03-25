@@ -8,10 +8,12 @@ namespace FinanceTracker.Application.Services;
 public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IAccountRepository _accountRepository;
 
-    public CategoryService(ICategoryRepository categoryRepository)
+    public CategoryService(ICategoryRepository categoryRepository, IAccountRepository accountRepository)
     {
         _categoryRepository = categoryRepository;
+        _accountRepository = accountRepository;
     }
     
     public async Task<Guid> CreateCategoryAsync(CreateCategoryDto dto)
@@ -45,7 +47,10 @@ public class CategoryService : ICategoryService
     {
         var category = await _categoryRepository.GetByIdAsync(id);
         if (category == null) throw new KeyNotFoundException("Category not found");
-        await _categoryRepository.DeleteAsync(id);
+        category.IsDeleted = true;
+        category.DeletedOn = DateTime.UtcNow;
+        
+        await _categoryRepository.UpdateAsync(category);
     }
 
 }

@@ -29,7 +29,6 @@ public class CategoryRepository : ICategoryRepository
     public async Task AddAsync(Category category)
     {
         await _dbContext.Categories.AddAsync(category);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -53,7 +52,6 @@ public class CategoryRepository : ICategoryRepository
     public async Task UpdateAsync(Category category)
     {
         _dbContext.Categories.Update(category);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>

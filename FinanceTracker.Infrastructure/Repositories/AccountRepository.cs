@@ -30,7 +30,6 @@ public class AccountRepository : IAccountRepository
     public async Task AddAsync(Account account)
     {
         await _dbContext.Accounts.AddAsync(account);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -54,7 +53,6 @@ public class AccountRepository : IAccountRepository
     public async Task UpdateAsync(Account account) 
     { 
         _dbContext.Accounts.Update(account); 
-        await _dbContext.SaveChangesAsync(); 
     }
 
     /// <summary>

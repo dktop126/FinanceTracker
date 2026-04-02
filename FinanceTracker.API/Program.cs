@@ -1,4 +1,5 @@
 using System.Reflection;
+using FinanceTracker.API.Middleware;
 using FinanceTracker.Infrastructure.Persistence;
 using FinanceTracker.Infrastructure.Repositories;
 using FinanceTracker.Domain.Interfaces;
@@ -14,9 +15,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTransactionValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountValidator>();
-builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+// Регистрация Unit of Work
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Регистрация сервисов
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -36,6 +39,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Глобальный обработчик исключений
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

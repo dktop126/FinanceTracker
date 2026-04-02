@@ -9,18 +9,12 @@ namespace FinanceTracker.Application.Services;
 
 public class TransactionService : ITransactionService
 {
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly IAccountRepository _accountRepository;
-    private readonly ICategoryRepository _categoryRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateTransactionDto> _validator;
 
-    public TransactionService(ITransactionRepository transactionRepository, IAccountRepository accountRepository,
-        ICategoryRepository categoryRepository,
-        IValidator<CreateTransactionDto> validator)
+    public TransactionService(IUnitOfWork unitOfWork, IValidator<CreateTransactionDto> validator)
     {
-        _transactionRepository = transactionRepository;
-        _accountRepository = accountRepository;
-        _categoryRepository = categoryRepository;
+        _unitOfWork = unitOfWork;
         _validator = validator;
     }
 
@@ -28,36 +22,52 @@ public class TransactionService : ITransactionService
     {
         var validationResult = await _validator.ValidateAsync(dto);
         if (!validationResult.IsValid)
-            throw new ValidationException(validationResult.Errors.First().ErrorMessage);
+            throw new ValidationException(validationResult.Errors);
 
-        var account = await _accountRepository.GetByIdAsync(dto.AccountId);
-        if (account == null) throw new KeyNotFoundException("Account not found");
-
-        var transaction = new Transaction
+        await _unitOfWork.BeginTransactionAsync();
+        
+        try
         {
-            Amount = dto.Amount,
-            Description = dto.Description,
-            AccountId = dto.AccountId,
-            CategoryId = dto.CategoryId,
-            Type = (TransactionType)dto.TransactionType,
-            Account = account,
-            Category = await _categoryRepository.GetByIdAsync(dto.CategoryId)
-        };
+            var account = await _unitOfWork.Accounts.GetByIdAsync(dto.AccountId);
+            if (account == null) throw new KeyNotFoundException("Счет не найден");
 
-        if (transaction.Type == TransactionType.Income)
-            account.Balance += transaction.Amount;
-        else if (transaction.Type == TransactionType.Expense)
-            account.Balance -= transaction.Amount;
+            var category = await _unitOfWork.Categories.GetByIdAsync(dto.CategoryId);
+            if (category == null) throw new KeyNotFoundException("Категория не найдена");
 
-        await _transactionRepository.AddAsync(transaction);
-        await _accountRepository.UpdateAsync(account);
+            var transaction = new Transaction
+            {
+                Amount = dto.Amount,
+                Description = dto.Description,
+                AccountId = dto.AccountId,
+                CategoryId = dto.CategoryId,
+                Type = (TransactionType)dto.TransactionType,
+                Account = account,
+                Category = category
+            };
 
-        return transaction.Id;
+            if (transaction.Type == TransactionType.Income)
+                account.Balance += transaction.Amount;
+            else if (transaction.Type == TransactionType.Expense)
+                account.Balance -= transaction.Amount;
+
+            await _unitOfWork.Transactions.AddAsync(transaction);
+            await _unitOfWork.Accounts.UpdateAsync(account);
+            
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            return transaction.Id;
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<IEnumerable<TransactionDto>> GetAllTransactionsAsync()
     {
-        var transactions = await _transactionRepository.GetAllAsync();
+        var transactions = await _unitOfWork.Transactions.GetAllAsync();
         var transactionDtos = transactions.Select(x => new TransactionDto
         {
             AccountId = x.AccountId,
@@ -75,19 +85,34 @@ public class TransactionService : ITransactionService
 
     public async Task DeleteTransactionAsync(Guid transactionId)
     {
-        var transaction = await _transactionRepository.GetByIdAsync(transactionId);
-        if (transaction == null) throw new KeyNotFoundException("Transaction not found");
-        var account = await _accountRepository.GetByIdAsync(transaction.AccountId);
-        if (account == null) throw new KeyNotFoundException("Account not found");
-        if (transaction.Type == TransactionType.Income)
-            account.Balance -= transaction.Amount;
-        else if (transaction.Type == TransactionType.Expense)
-            account.Balance += transaction.Amount;
+        await _unitOfWork.BeginTransactionAsync();
         
-        transaction.IsDeleted = true;
-        transaction.DeletedOn = DateTime.UtcNow;
-        
-        await _accountRepository.UpdateAsync(account);
-        await _transactionRepository.UpdateAsync(transaction);
+        try
+        {
+            var transaction = await _unitOfWork.Transactions.GetByIdAsync(transactionId);
+            if (transaction == null) throw new KeyNotFoundException("Транзакция не найдена");
+            
+            var account = await _unitOfWork.Accounts.GetByIdAsync(transaction.AccountId);
+            if (account == null) throw new KeyNotFoundException("Счет не найден");
+            
+            if (transaction.Type == TransactionType.Income)
+                account.Balance -= transaction.Amount;
+            else if (transaction.Type == TransactionType.Expense)
+                account.Balance += transaction.Amount;
+            
+            transaction.IsDeleted = true;
+            transaction.DeletedOn = DateTime.UtcNow;
+            
+            await _unitOfWork.Accounts.UpdateAsync(account);
+            await _unitOfWork.Transactions.UpdateAsync(transaction);
+            
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            throw;
+        }
     }
 }

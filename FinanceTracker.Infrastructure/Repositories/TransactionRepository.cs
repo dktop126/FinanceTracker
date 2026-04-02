@@ -29,7 +29,6 @@ public class TransactionRepository : ITransactionRepository
     public async Task AddAsync(Transaction transaction)
     {
         await _dbContext.Transactions.AddAsync(transaction);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -60,7 +59,6 @@ public class TransactionRepository : ITransactionRepository
     public async Task UpdateAsync(Transaction transaction)
     {
         _dbContext.Transactions.Update(transaction);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>

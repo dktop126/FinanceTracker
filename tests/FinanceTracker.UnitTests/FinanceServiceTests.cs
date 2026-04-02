@@ -14,9 +14,9 @@ public class FinanceServiceTests
     [Fact]
     public async Task DeleteTransaction_ShouldIncreaseBalance_WhenTransactionIsExpense()
     {
-        var accountRepoMock = new Mock<IAccountRepository>();
+        var unitOfWorkMock = new Mock<IUnitOfWork>();
         var transRepoMock = new Mock<ITransactionRepository>();
-        var categoryRepoMock = new Mock<ICategoryRepository>();
+        var accountRepoMock = new Mock<IAccountRepository>();
         var validatorMock = new Mock<IValidator<CreateTransactionDto>>();
 
         var account = new Account { Id = Guid.NewGuid(), Balance = 1000 };
@@ -31,7 +31,10 @@ public class FinanceServiceTests
         transRepoMock.Setup(r => r.GetByIdAsync(transaction.Id)).ReturnsAsync(transaction);
         accountRepoMock.Setup(r => r.GetByIdAsync(account.Id)).ReturnsAsync(account);
         
-        var service = new TransactionService(transRepoMock.Object, accountRepoMock.Object, categoryRepoMock.Object,  validatorMock.Object);
+        unitOfWorkMock.Setup(u => u.Transactions).Returns(transRepoMock.Object);
+        unitOfWorkMock.Setup(u => u.Accounts).Returns(accountRepoMock.Object);
+        
+        var service = new TransactionService(unitOfWorkMock.Object, validatorMock.Object);
         
         await service.DeleteTransactionAsync(transaction.Id);
 

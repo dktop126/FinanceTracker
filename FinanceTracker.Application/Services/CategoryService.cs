@@ -7,13 +7,11 @@ namespace FinanceTracker.Application.Services;
 
 public class CategoryService : ICategoryService
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IAccountRepository _accountRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CategoryService(ICategoryRepository categoryRepository, IAccountRepository accountRepository)
+    public CategoryService(IUnitOfWork unitOfWork)
     {
-        _categoryRepository = categoryRepository;
-        _accountRepository = accountRepository;
+        _unitOfWork = unitOfWork;
     }
     
     public async Task<Guid> CreateCategoryAsync(CreateCategoryDto dto)
@@ -24,14 +22,15 @@ public class CategoryService : ICategoryService
             Icon = dto.Icon,
             Type = dto.Type
         };
-        await _categoryRepository.AddAsync(category);
+        await _unitOfWork.Categories.AddAsync(category);
+        await _unitOfWork.SaveChangesAsync();
 
         return category.Id;
     }
 
     public async Task<IEnumerable<CategoryDto>> GetAllCategoriesAsync()
     {
-        var categories = await _categoryRepository.GetAllAsync();
+        var categories = await _unitOfWork.Categories.GetAllAsync();
         var categoriesDtos = categories.Select(x => new CategoryDto
             {
                 Id = x.Id,
@@ -45,12 +44,13 @@ public class CategoryService : ICategoryService
 
     public async Task DeleteCategoryAsync(Guid id)
     {
-        var category = await _categoryRepository.GetByIdAsync(id);
-        if (category == null) throw new KeyNotFoundException("Category not found");
+        var category = await _unitOfWork.Categories.GetByIdAsync(id);
+        if (category == null) throw new KeyNotFoundException("Категория не найдена");
         category.IsDeleted = true;
         category.DeletedOn = DateTime.UtcNow;
         
-        await _categoryRepository.UpdateAsync(category);
+        await _unitOfWork.Categories.UpdateAsync(category);
+        await _unitOfWork.SaveChangesAsync();
     }
 
 }

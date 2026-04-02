@@ -8,12 +8,12 @@ namespace FinanceTracker.Application.Services;
 
 public class AccountService : IAccountService
 {
-    private readonly IAccountRepository _accountRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateAccountDto> _validator;
 
-    public AccountService(IAccountRepository accountRepository, IValidator<CreateAccountDto> validator)
+    public AccountService(IUnitOfWork unitOfWork, IValidator<CreateAccountDto> validator)
     {
-        _accountRepository = accountRepository;
+        _unitOfWork = unitOfWork;
         _validator = validator;
     }
 
@@ -21,7 +21,7 @@ public class AccountService : IAccountService
     {
         var validationResult = await _validator.ValidateAsync(dto);
         if (!validationResult.IsValid)
-            throw new ValidationException(validationResult.Errors.First().ErrorMessage);
+            throw new ValidationException(validationResult.Errors);
 
         var account = new Account
         {
@@ -30,14 +30,15 @@ public class AccountService : IAccountService
             Currency = dto.Currency
         };
 
-        await _accountRepository.AddAsync(account);
+        await _unitOfWork.Accounts.AddAsync(account);
+        await _unitOfWork.SaveChangesAsync();
         return account.Id;
     }
 
     public async Task<AccountDto?> GetAccountAsync(Guid accountId)
     {
-        var account = await _accountRepository.GetByIdAsync(accountId);
-        if (account == null) throw new KeyNotFoundException("Account not found");
+        var account = await _unitOfWork.Accounts.GetByIdAsync(accountId);
+        if (account == null) throw new KeyNotFoundException("Счет не найден");
         return new AccountDto
         {
             Id = account.Id,
@@ -49,7 +50,7 @@ public class AccountService : IAccountService
 
     public async Task<IEnumerable<AccountDto>> GetAllAccountsAsync()
     {
-        var accounts = await _accountRepository.GetAllAsync();
+        var accounts = await _unitOfWork.Accounts.GetAllAsync();
         return accounts.Select(x => new AccountDto
             {
                 Id = x.Id,
@@ -62,8 +63,8 @@ public class AccountService : IAccountService
 
     public async Task<decimal> GetAccountBalanceAsync(Guid accountId)
     {
-        var account = await _accountRepository.GetByIdAsync(accountId);
-        if (account == null) throw new KeyNotFoundException("Account not found");
+        var account = await _unitOfWork.Accounts.GetByIdAsync(accountId);
+        if (account == null) throw new KeyNotFoundException("Счет не найден");
         return account.Balance;
     }
 }

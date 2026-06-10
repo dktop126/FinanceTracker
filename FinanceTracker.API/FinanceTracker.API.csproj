@@ -21,4 +21,8 @@
       <ProjectReference Include="..\FinanceTracker.Infrastructure\FinanceTracker.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Dockerfile" />
+    </ItemGroup>
+
 </Project>
